@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pico Car Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; background: #121212; color: #fff; }
+        button { padding: 15px 30px; font-size: 18px; background: #4CAF50; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #45a049; }
+        .status { margin-top: 20px; font-size: 20px; color: #ffeb3b; }
+        .keys { margin-top: 30px; font-size: 16px; color: #aaa; }
+    </style>
+</head>
+<body>
+    <h1>Pico Folk-Racing Car Control</h1>
+    <p>Click the button below to link your browser to your Pico:</p>
+    <button id="connectBtn">Connect Pico</button>
+    <div class="status" id="status">Disconnected</div>
+    <div class="keys">Use <b>W, A, S, D, X</b> keys on your keyboard to drive!</div>
+
+    <script>
+        let port;
+        let writer;
+        const connectBtn = document.getElementById('connectBtn');
+        const statusDiv = document.getElementById('status');
+
+        connectBtn.addEventListener('click', async () => {
+            try {
+                port = await navigator.serial.requestPort();
+                await port.open({ baudRate: 115200 });
+                writer = port.writable.getWriter();
+                statusDiv.textContent = "Connected! Ready to drive.";
+                statusDiv.style.color = "#4CAF50";
+                connectBtn.textContent = "Connected";
+            } catch (err) {
+                console.error('Error:', err);
+                statusDiv.textContent = "Connection failed.";
+            }
+        });
+
+        window.addEventListener('keydown', (e) => {
+            const key = e.key.toLowerCase();
+            if (['w', 'a', 's', 'd', 'x'].includes(key)) {
+                sendCommand(key);
+            }
+        });
+
+        async function sendCommand(char) {
+            if (writer) {
+                const data = new TextEncoder().encode(char);
+                await writer.write(data);
+            }
+        }
+    </script>
+</body>
+</html>
